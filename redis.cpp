@@ -64,12 +64,27 @@ class Redis
 
         string GET(string key)
         {
-            if(mp.find(key) == mp.end() || isTimeOut(mp[key]))
+            if(mp.find(key) != mp.end())
             {
-                return "nil";
+                if(!isTimeOut(mp[key]))
+                {
+                    return mp[key].get_value();
+                }
             }
 
-            return mp[key].get_value();
+            if(tree_instance.find(key) != tree_instance.end())
+            {
+                try
+                {
+                    throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
+                }
+                catch(const char* msg)
+                {
+                    return msg;
+                }
+            }
+
+            return "nil";
         }
 
         string SET(string key, string val)
@@ -125,53 +140,54 @@ int32_t main()
         freopen("output.txt", "w", stdout);
     #endif
     Redis r;
-    //test GET
-    cout<<r.GET("hello")<<endl;
+    // //test GET
+    // cout<<r.GET("hello")<<endl;
     
-    //test SET
-    r.SET("hello", "hii");
-    cout<<r.GET("hello")<<endl;
+    // //test SET
+    // r.SET("hello", "hii");
+    // cout<<r.GET("hello")<<endl;
 
-    r.ZADD("myset", 3, "aaa");
-    r.ZADD("myset", 2, "aab");
-    r.ZADD("myset", 3, "aac");
-    r.ZADD("myset", 2, "aad");
-    r.ZADD("myset1", 1, "aaa");
-    r.ZADD("myset1", 1, "aav");
+    // r.ZADD("myset", 3, "aaa");
+    // r.ZADD("myset", 2, "aab");
+    // r.ZADD("myset", 3, "aac");
+    // r.ZADD("myset", 2, "aad");
+    // r.ZADD("myset1", 1, "aaa");
+    // r.ZADD("myset1", 1, "aav");
 
-    cout<<r.ZRANK("myset", "aab")<<endl;
-    cout<<r.ZRANK("myset", "aac")<<endl;
-    cout<<r.ZRANK("myset1", "aaa")<<endl;
-    cout<<r.ZRANK("myset1", "aav")<<endl;
+    // cout<<r.ZRANK("myset", "aab")<<endl;
+    // cout<<r.ZRANK("myset", "aac")<<endl;
+    // cout<<r.ZRANK("myset1", "aaa")<<endl;
+    // cout<<r.ZRANK("myset1", "aav")<<endl;
 
-    for(int i=1;i<=4;i++)
-    {
-        for(int j=1;j<=4;j++)
-        {
-            vector<string>ok = r.ZRANGE("myset",i,j);
-            cout<<i<<" "<<j<<" : ";
-            for(auto x:ok)
-            {
-                cout<<x<<" ";
-            }
-            cout<<endl;
-        }
-    }
+    // for(int i=1;i<=4;i++)
+    // {
+    //     for(int j=1;j<=4;j++)
+    //     {
+    //         vector<string>ok = r.ZRANGE("myset",i,j);
+    //         cout<<i<<" "<<j<<" : ";
+    //         for(auto x:ok)
+    //         {
+    //             cout<<x<<" ";
+    //         }
+    //         cout<<endl;
+    //     }
+    // }
 
-    for(int i=1;i<=4;i++)
-    {
-        for(int j=1;j<=4;j++)
-        {
-            vector<string>ok = r.ZRANGE("myset1",i,j);
-            cout<<i<<" "<<j<<" : ";
-            for(auto x:ok)
-            {
-                cout<<x<<" ";
-            }
-            cout<<endl;
-        }
-    }
-
+    // for(int i=1;i<=4;i++)
+    // {
+    //     for(int j=1;j<=4;j++)
+    //     {
+    //         vector<string>ok = r.ZRANGE("myset1",i,j);
+    //         cout<<i<<" "<<j<<" : ";
+    //         for(auto x:ok)
+    //         {
+    //             cout<<x<<" ";
+    //         }
+    //         cout<<endl;
+    //     }
+    // }
+    r.ZADD("myke",1,"ff");
+    cout<< r.GET("myke")<<endl;
     return 0;
 }
 

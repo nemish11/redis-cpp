@@ -1,0 +1,67 @@
+1) GET:
+    return value of key
+    if key not exists then return "nil".
+    if value is not string then raise exception.
+
+2) SET:
+    Set key to hold the string value. 
+    If key already holds a value, it is overwritten, regardless of its type. 
+    Any previous time to live associated with the key is discarded on successful SET operation.
+
+    options:
+    EX seconds -- Set the specified expire time, in seconds.
+    PX milliseconds -- Set the specified expire time, in milliseconds.
+    NX -- Only set the key if it does not already exist.
+    XX -- Only set the key if it already exist.
+    KEEPTTL -- Retain the time to live associated with the key.
+
+    return:
+    Simple string reply: OK if SET was executed correctly. 
+    Null reply: a Null Bulk Reply is returned if the SET operation was not 
+    performed because the user specified the NX or XX option but the condition was not met.
+
+3) EXPIRE:
+    Set a timeout on key. 
+    After the timeout has expired, the key will automatically be deleted.
+    return:
+    1 if the timeout was set.
+    0 if key does not exist.
+
+4) ZADD:
+    Adds all the specified members with the specified scores to the sorted set stored at key. 
+
+    options:
+    XX: Only update elements that already exist. Never add elements.
+    NX: Don't update already existing elements. Always add new elements.
+    CH: Modify the return value from the number of new elements added, to the total number of elements changed 
+        (CH is an abbreviation of changed). Changed elements are new elements added and elements already existing 
+        for which the score was updated. So elements specified in the command line having the same score as they 
+        had in the past are not counted. Note: normally the return value of ZADD only counts the number of new 
+        elements added.
+    INCR: When this option is specified ZADD acts like ZINCRBY. Only one score-element pair can be specified in 
+        this mode.
+
+    return:
+        integer reply, specifically:
+
+        The number of elements added to the sorted set, not including elements already existing for which the score 
+        was updated.
+        If the INCR option is specified, the return value will be Bulk string reply:
+
+        The new score of member (a double precision floating point number) represented as string, or nil 
+        if the operation was aborted (when called with either the XX or the NX option).
+
+5) ZRANK:
+    Returns the rank of member in the sorted set stored at key (0 based index)
+
+    return
+        If member exists in the sorted set, Integer reply: the rank of member.
+        If member does not exist in the sorted set or key does not exist, Bulk string reply: nil.
+
+6) ZRANGE:
+    Returns the specified range of elements in the sorted set stored at key. (0 based index)
+    need to handle negative value of range.
+
+    return:
+        Array reply: list of elements in the specified range (optionally with their scores, 
+        in case the WITHSCORES option is given).

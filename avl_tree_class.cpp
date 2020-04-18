@@ -171,30 +171,34 @@ class AVLTree
         {
             if(root == NULL)
             {
-                return rank;
+                return 0;
             }
             
             if(score < root->key)
             {
                 return findRank(root->left, score, value, rank);
             }
-
-            if(score > root->key)
+            else if(score > root->key)
             {
                 return findRank(root->right, score, value, rank+root->leftcount);
             }
-
-            if(value < root->value)
+            else 
             {
-                return findRank(root->left, score, value, rank);
-            }
-
-            if(value > root->value)
-            {
-                return findRank(root->right, score, value, rank+root->leftcount);
+                if(value < root->value)
+                {
+                    return findRank(root->left, score, value, rank);
+                }
+                else if(value > root->value)
+                {
+                    return findRank(root->right, score, value, rank+root->leftcount);
+                }
+                else if(value == root->value)
+                {
+                    return rank + root->leftcount;
+                }
             }
             
-            return rank + root->leftcount;
+            return 0;
         }
 
         void take_element_from_left(Node *root, int count, vector<string>&values)
@@ -237,7 +241,7 @@ class AVLTree
         {
             if(left > right || root == NULL)
             {
-                return {};
+                return vector<string>();
             }
 
             if(root->leftcount < left)
@@ -270,6 +274,91 @@ class AVLTree
             return left_val;
         }
 
+        Node* minValueNode(Node* node)  
+        {  
+            Node* current = node;  
+          
+            while (current->left != NULL)  
+                current = current->left;  
+          
+            return current;  
+        }  
+
+        Node* deleteNode(Node* root, int key, string value)  
+        {  
+            if (root == NULL)  
+                return root;  
+
+            if (key < root->key) 
+            { 
+                root->left = deleteNode(root->left, key, value); 
+            }
+            else if(key > root->key) 
+            { 
+                root->right = deleteNode(root->right, key, value); 
+            } 
+            else
+            {  
+                if(value < root->value)
+                {
+                    root->left = deleteNode(root->left, key, value);
+                }
+                else if(value > root->value)
+                {
+                    root->right = deleteNode(root->right, key, value);
+                }
+                else
+                {
+                    if((root->left == NULL) || (root->right == NULL))  
+                    {  
+                        Node *temp = root->left ? root->left : root->right;  
+                        if (temp == NULL)  
+                        {  
+                            temp = root;  
+                            root = NULL;  
+                        }  
+                        else  
+                        {
+                            *root = *temp;
+                        } 
+                        free(temp);  
+                    }  
+                    else
+                    {  
+                        Node* temp = minValueNode(root->right);  
+                        root->key = temp->key;    
+                        root->value = temp->value;
+                        root->right = deleteNode(root->right, temp->key, temp->value);  
+                    }  
+                }
+            }  
+           
+            if (root == NULL)  
+                return root;  
+          
+            root->height = 1 + max(height(root->left), height(root->right));  
+            int balance = getBalance(root);  
+           
+            if (balance > 1 && getBalance(root->left) >= 0)  
+                return rightRotate(root);  
+          
+            if (balance > 1 && getBalance(root->left) < 0)  
+            {  
+                root->left = leftRotate(root->left);  
+                return rightRotate(root);  
+            }  
+          
+            if (balance < -1 && getBalance(root->right) <= 0)  
+                return leftRotate(root);  
+          
+            if (balance < -1 && getBalance(root->right) > 0)  
+            {  
+                root->right = rightRotate(root->right);  
+                return leftRotate(root);  
+            }  
+            return root;  
+        }  
+
 };
 
 void preOrder(Node *root)  
@@ -298,16 +387,8 @@ int32_t main()
     tree.root = tree.insert(tree.root, 1, "agh");  
     tree.root = tree.insert(tree.root, 3, "ffg");  
     tree.root = tree.insert(tree.root, 3, "fff");  
-      
-    /* The constructed AVL Tree would be  
-            30  
-            / \  
-            20 40  
-            / \ \  
-            10 25 50  
-    */
-    cout << "Preorder traversal of the "
-            "constructed AVL tree is \n";  
+    
+    cout << "Preorder traversal of the constructed AVL tree is \n";  
     preOrder(tree.root);
     
     cout<<tree.findRank(tree.root, 1, "aaa")<<endl;
@@ -317,9 +398,21 @@ int32_t main()
     cout<<tree.findRank(tree.root, 3 ,"fff")<<endl;
     cout<<tree.findRank(tree.root, 3 ,"ffg")<<endl;
 
-    tree.root = tree.insert(tree.root, 2, "ffr"); 
+    // cout<<tree.findRank(tree.root, 2 ,"ffr")<<endl;
+    // cout<<endl;
+    // cout<<endl;
+    // vector<string>val = tree.retrieveFromRange(tree.root, 2, 5);
+    // for(auto x: val)
+    // {
+    //     cout<<x<<" ";
+    // }
+    // cout<<endl;
 
-    cout<<tree.findRank(tree.root, 2 ,"ffr")<<endl;
+    tree.deleteNode(tree.root, 2, "aau");
+    tree.deleteNode(tree.root, 3, "ffg");
+    cout << "Preorder traversal of the constructed AVL tree is \n";  
+    preOrder(tree.root);
+    cout<<tree.findRank(tree.root, 2 ,"aau")<<endl;
     cout<<endl;
     cout<<tree.findRank(tree.root, 1, "aaa")<<endl;
     cout<<tree.findRank(tree.root, 1 ,"agh")<<endl;
@@ -327,14 +420,6 @@ int32_t main()
     cout<<tree.findRank(tree.root, 2 ,"abc")<<endl;
     cout<<tree.findRank(tree.root, 3 ,"fff")<<endl;
     cout<<tree.findRank(tree.root, 3 ,"ffg")<<endl;
-    cout<<endl;
-    cout<<endl;
-    vector<string>val = tree.retrieveFromRange(tree.root, 2, 5);
-    for(auto x: val)
-    {
-        cout<<x<<" ";
-    }
-    cout<<endl;
     return 0;
 }
 
