@@ -235,7 +235,7 @@ class AVLTree
 
         vector<string> retrieveFromRange(Node *root, int left, int right)
         {
-            if(left > right || root == NULL)
+            if(left > right || root == NULL || left<=0 || right<=0)
             {
                 return vector<string>();
             }
@@ -354,7 +354,7 @@ class AVLTree
             }  
             return root;  
         }
-        
+
 };
 
 // void preOrder(Node *root)  
