@@ -8,6 +8,8 @@ class Redis
     private:
         map<string, Value*>cache;
         map<string, int> value_to_score;
+        thread t1;
+        bool isThreadRunning; 
 
         bool isTimeOut(string key)
         {
@@ -47,21 +49,29 @@ class Redis
 
         void free_memory()
         {
-            A:
-            for(auto key: cache)
+            while(isThreadRunning)
             {
-                isTimeOut(key.first);
+                for(auto key: cache)
+                {
+                    isTimeOut(key.first);
+                }
+                this_thread::sleep_for(chrono::seconds(10));
             }
-            this_thread::sleep_for(chrono::seconds(10));
-            goto A;
         }
 
     public:
 
         Redis()
-        {
-            thread t1(&Redis::free_memory, this);
+        {        
+            isThreadRunning = true; 
+            t1 = thread(&Redis::free_memory, this);
             t1.detach();
+        }
+
+        ~Redis()
+        {
+            isThreadRunning = false;
+            t1.~thread();
         }
 
         string GET(string key)
@@ -292,10 +302,5 @@ class Redis
                     return error;
                 }
             }
-        }
-
-        ~Redis()
-        {
-            
         }
 };

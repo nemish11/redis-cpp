@@ -6,7 +6,7 @@ int32_t main()
 {   
     #ifndef ONLINE_JUDGE
         freopen("input.txt", "r", stdin);
-        freopen("output.txt", "w", stdout);
+        //freopen("output.txt", "w", stdout);
     #endif
     Redis r;
     cout<< r.SET("hello", "hii")<<endl;
@@ -113,6 +113,10 @@ int32_t main()
     //         cout<<endl;
     //     }
     // }
+
+    // cout<<"before"<<endl;
+    //this_thread::sleep_for(chrono::seconds(5));
+    // cout<<"after closed"<<endl;
     return 0;
 }
 
