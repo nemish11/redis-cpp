@@ -1,16 +1,23 @@
 #include "value.h"
 using namespace std;
-#define int long long int
 
 
+/*
+Redis provides GET, SET, EXPIRE, ZADD, ZRANGE, ZRANK, etc operations.
+*/
 class Redis
 {
     private:
-        map<string, Value*>cache;
-        map<string, int> value_to_score;
-        thread t1;
-        bool isThreadRunning; 
+        map<string, Value*>cache; // stores key-value pairs
+        thread t1; // thread used to clean expired key
+        bool threadStatus; // thread termination flag
 
+        /*
+        This method check whether given key is expired or not.
+        if given key is expired then remove from cache.
+        return 1 if given key is expired
+        otherwise 0
+        */
         bool isTimeOut(string key)
         {
             if(cache.find(key) == cache.end())
@@ -31,25 +38,35 @@ class Redis
                 {
                     delete (SetValue*)cache[key];
                 }
+
                 cache.erase(key);
                 return 1;
             }
             
             return 0;
         }
+        
 
-        void delete_node_from_SetValue(string key)
+        /*
+        This method delete existing key from cache if type of key is SetValue.
+        */
+        void deleteExistingSetValueKey(string key)
         {
-            isTimeOut(key);
+            isTimeOut(key); // first check about key is expired or not
             if(cache.find(key) != cache.end() && cache[key]->GetType() != NORMAL_VALUE)
             {
                 delete (SetValue*)cache[key];
             }
         }
 
-        void free_memory()
+
+        /*
+        This method perform cleaning at every 10 seconds.
+        Thread will run at every 10 seconds to clean expired keys.
+        */
+        void freeExpiredKey()
         {
-            while(isThreadRunning)
+            while(threadStatus)
             {
                 for(auto key: cache)
                 {
@@ -63,32 +80,39 @@ class Redis
 
         Redis()
         {        
-            isThreadRunning = true; 
-            t1 = thread(&Redis::free_memory, this);
-            t1.detach();
+            threadStatus = true;  // set thread status
+            t1 = thread(&Redis::freeExpiredKey, this); // start thread for cleaning expire key
+            t1.detach(); // run thread in background
         }
 
         ~Redis()
         {
-            isThreadRunning = false;
+            threadStatus = false; // complete execution of thread
             t1.~thread();
         }
 
+        /*
+        GET-> first check if key present in cache,
+                    if type of value is string then return value
+                    otherwise raise exception.
+              if key not exist then return "nil" object.
+        */
         string GET(string key)
         {
-            if(cache.find(key) != cache.end())
+            if(cache.find(key) != cache.end()) // check existance of key
             {
                 if(isTimeOut(key))
                 {
-                    return "nil";
+                    return "nil";  // key timeout
                 }   
                 
                 if(cache[key]->GetType() == NORMAL_VALUE)
                 {
-                    return ((NormalValue*)cache[key])->getValue();
+                    return ((NormalValue*)cache[key])->getValue(); // return value of key
                 }
                 else
                 {
+                    // type of value of key is not string then raise exceptions
                     try
                     {
                         throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
@@ -101,32 +125,43 @@ class Redis
 
             }
 
-            return "nil";
+            return "nil";  // key not present in cache
         }
 
+
+        /*
+        set key and value. if key already exist then overwrite value. 
+        set default expiration time MAX_EXPIRE_TIME
+        NOTE: if key previously added by ZADD then it will be deleted and new key-value pair inserted
+        */
         string SET(string key, string val)
         {
-            delete_node_from_SetValue(key);
+            deleteExistingSetValueKey(key); //delete already existing key added by ZADD or SET
             cache[key] = new NormalValue(val);
             return "OK";
         }
 
-        string SET(string key, string val, string option, int expire_time=LONG_MAX)
+
+        /*
+        set key and value based on given option and expire_time. 
+        */
+        string SET(string key, string val, string option, long long int expire_time=MAX_EXPIRE_TIME)
         {
+            isTimeOut(key);
+
             time_t current_time = time(0);
             if(option == "EX")
             {
-                delete_node_from_SetValue(key);
+                deleteExistingSetValueKey(key);
 
                 cache[key] = new NormalValue(val, current_time + expire_time);
                 return "OK";
             }
             else if(option == "PX")
             {
-                delete_node_from_SetValue(key);
+                deleteExistingSetValueKey(key);
 
                 cache[key] = new NormalValue(val, current_time + llround(expire_time/1000.0));
-                cout<<cache[key]->GetExpireTime()<<" "<<current_time<<endl;
                 return "OK";
             }
             else if(option == "NX")
@@ -138,7 +173,7 @@ class Redis
                         return "nil";
                     }
                 }
-                delete_node_from_SetValue(key);
+                deleteExistingSetValueKey(key);
 
                 cache[key] = new NormalValue(val);
                 return "OK";
@@ -149,7 +184,7 @@ class Redis
                 {
                     if(cache[key]->GetType() == NORMAL_VALUE)
                     {
-                        delete_node_from_SetValue(key);
+                        deleteExistingSetValueKey(key);
 
                         cache[key] = new NormalValue(val);
                         return "OK";
@@ -159,7 +194,7 @@ class Redis
             }
             else if(option == "KEEPTTL")
             {
-                delete_node_from_SetValue(key);
+                deleteExistingSetValueKey(key);
 
                 if(cache.find(key) != cache.end())
                 {
@@ -184,18 +219,21 @@ class Redis
             }
         }
 
-        int EXPIRE(string key, int expire_time)
+        long long int EXPIRE(string key, long long int expire_time)
         {
+            isTimeOut(key);
+            
             if(cache.find(key) != cache.end())
             {
                 time_t current_time = time(0);
                 cache[key]->SetExpireTime(current_time + expire_time);
                 return 1;
             }
+
             return 0; //key not found
         }
 
-        int ZADD(string key, int score, string value)
+        long long int ZADD(string key, long long int score, string value)
         {
             isTimeOut(key);
 
@@ -224,52 +262,70 @@ class Redis
                 cache[key] = obj;
             }
 
-            if(value_to_score.find(key+"_"+value) != value_to_score.end())
+            if(obj->checkIsValueExist(value))
             {
-                int old_score = value_to_score[key+"_"+value];
+                long long int old_score = obj->getScoreFromValue(value);
+                
+                if(old_score == score)
+                    return 0;
+                
                 Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
-                obj->setTreeInstance_root(node);
+                obj->setTreeInstanceRoot(node);
             }
 
             Node *node = obj->getTreeInstance().insert(obj->getTreeInstance().root, score, value);
-            obj->setTreeInstance_root(node);
-            value_to_score[key+"_"+value] = score;
+            obj->setTreeInstanceRoot(node);
+            obj->setValueToScore(value, score);
+            
             return 1;
         }
 
-        int ZRANK(string key, string value)
+        long long int ZRANK(string key, string value)
         {
-            if(cache.find(key) == cache.end() || isTimeOut(key) || value_to_score.find(key+"_"+value)==value_to_score.end())
+            if(cache.find(key) == cache.end() || isTimeOut(key))
             {
-                //cout<<"nil"<<endl;
-                return -1;
+                return -1; //key not found
             }
-            int score = value_to_score[key+"_"+value];
+
             SetValue* obj = (SetValue*)cache[key];
-            int rank = obj->getTreeInstance().findRank(obj->getTreeInstance().root, score, value);
-            return rank-1;
+
+            if(!obj->checkIsValueExist(value))
+            {
+                return -1; //value not found in current tree
+            }
+
+            long long int score = obj->getScoreFromValue(value);
+            
+            long long int rank = obj->getTreeInstance().findRank(obj->getTreeInstance().root, score, value);
+            
+            return rank - 1;
         }
 
-        vector<string> ZRANGE(string key, int l, int r)
+        vector<string> ZRANGE(string key, long long int l, long long int r)
         {
             if(cache.find(key) == cache.end() || isTimeOut(key) || cache[key]->GetType()!=SET_VALUE)
             {
                 return vector<string>();
             }
+            
             SetValue* obj = (SetValue*)cache[key];
-            int total_values = obj->getTreeInstance().root->totalcount;
+            long long int total_values = obj->getTreeInstance().root->totalcount;
+            
             if(l<0)
             {
                 l = l + total_values;
             }
+            
             if(r<0)
             {
                 r = r + total_values;
             }
+            
             return obj->getTreeInstance().retrieveByRange(obj->getTreeInstance().root, l+1, r+1);
         }
 
-        vector<pair<string,int> > ZRANGE(string key, int l, int r, string option)
+
+        vector<pair<string,int> > ZRANGE(string key, long long int l, long long int r, string option)
         {
             if(cache.find(key) == cache.end() || isTimeOut(key) || cache[key]->GetType()!=SET_VALUE)
             {
@@ -278,7 +334,7 @@ class Redis
             if(option == "WITHSCORES")
             {
                 SetValue* obj = (SetValue*)cache[key];
-                int total_values = obj->getTreeInstance().root->totalcount;
+                long long int total_values = obj->getTreeInstance().root->totalcount;
                 if(l<0)
                 {
                     l = l + total_values;

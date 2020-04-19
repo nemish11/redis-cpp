@@ -1,6 +1,5 @@
 #include "libs.h"
 using namespace std;
-#define int long long int
 
 /*
 Node class stores all the details. like, key, value,
@@ -10,17 +9,17 @@ left child, right child, height of node.
 class Node  
 {  
     public: 
-        int key;  //key of node
+        long long int key;  //key of node
         Node *left;  //left child
         Node *right;  //right child
-        int height;  //height of node in tree
+        long long int height;  //height of node in tree
         string value; // value at node
         //leftcount stores how many nodes have smaller or equal keys
-        int leftcount, totalcount; 
+        long long int leftcount, totalcount; 
 
         Node(){}
 
-        Node(int key, string value)
+        Node(long long int key, string value)
         {
             this->key = key;  
             this->left = NULL;  
@@ -50,7 +49,7 @@ class AVLTree
         Node* root = NULL;
 
         //return height of node.
-        int height(Node* node)
+        long long int height(Node* node)
         {
             if(node == NULL) //if null return 0;
                 return 0;
@@ -58,7 +57,7 @@ class AVLTree
         }
 
         //return how many node in it's subtree including current node as well.
-        int node_count(Node* node)
+        long long int node_count(Node* node)
         {
             if(node == NULL)
                 return 0;
@@ -66,7 +65,7 @@ class AVLTree
         }
 
         //return difference of height of left and right subtree
-        int getBalance(Node* node)
+        long long int getBalance(Node* node)
         {
             if (node == NULL)  
                 return 0;  
@@ -137,7 +136,7 @@ class AVLTree
 
         /* Recursive function insert new key-value pair in tree and update details of nodes
         and returns the new root of the subtree.*/
-        Node* insert(Node* node, int key, string value)  
+        Node* insert(Node* node, long long int key, string value)  
         {  
             if (node == NULL)
                 return new Node(key, value);
@@ -160,7 +159,7 @@ class AVLTree
             node->leftcount = node_count(node->left) + 1;
             node->totalcount = node_count(node->left) + node_count(node->right) + 1;
 
-            int balance = getBalance(node);  
+            long long int balance = getBalance(node);  
             
             //Left Left Case
             if (balance > 1 && key < node->left->key)  
@@ -190,7 +189,7 @@ class AVLTree
         /*
         This method returns rank of given value.
         */
-        int findRank(Node *root, int score, string value, int rank=0)
+        long long int findRank(Node *root, long long int score, string value, long long int rank=0)
         {
             if(root == NULL)
                 return rank;
@@ -213,7 +212,7 @@ class AVLTree
         /*
         Stores count number of element from left subtree of tree.
         */
-        void takeElementFromLeftSubtree(Node *root, int count, vector<string>&values)
+        void takeElementFromLeftSubtree(Node *root, long long int count, vector<string>&values)
         {
             if(root!=NULL)
             {
@@ -231,7 +230,7 @@ class AVLTree
         /*
         Stores count number of element from right subtree of tree.
         */
-        void takeElementFromRightSubtree(Node *root, int count, vector<string>&values)
+        void takeElementFromRightSubtree(Node *root, long long int count, vector<string>&values)
         {
             if(root!=NULL)
             {
@@ -248,7 +247,7 @@ class AVLTree
         /*
         Return all values which has rank between left and right
         */
-        vector<string> retrieveByRange(Node *root, int left, int right)
+        vector<string> retrieveByRange(Node *root, long long int left, long long int right)
         {
             if(left > right || root == NULL || left<=0 || right<=0)
                 return vector<string>();
@@ -280,7 +279,7 @@ class AVLTree
         /*
         Stores count number of element from left subtree of tree.
         */
-        void takeElementFromLeftSubtreeWithscores(Node *root, int count, vector<pair<string,int>>&values)
+        void takeElementFromLeftSubtreeWithscores(Node *root, long long int count, vector<pair<string,int>>&values)
         {
             if(root!=NULL)
             {
@@ -299,7 +298,7 @@ class AVLTree
         /*
         Stores count number of element from right subtree of tree.
         */
-        void takeElementFromRightSubtreeWithscores(Node *root, int count, vector<pair<string,int>>&values)
+        void takeElementFromRightSubtreeWithscores(Node *root, long long int count, vector<pair<string,int>>&values)
         {
             if(root!=NULL)
             {
@@ -317,7 +316,7 @@ class AVLTree
         /*
         Return all values with score which has rank between left and right
         */
-        vector< pair<string,int> > retrieveByRangeWithScore(Node *root, int left, int right)
+        vector< pair<string,int> > retrieveByRangeWithScore(Node *root, long long int left, long long int right)
         {
             if(left > right || root == NULL || left<=0 || right<=0)
                 return vector<pair<string,int>>();
@@ -361,7 +360,7 @@ class AVLTree
         Delete node with has given key and value. After deletion updates count and heights
         of remaning nodes. 
         */
-        Node* deleteNode(Node* root, int key, string value)  
+        Node* deleteNode(Node* root, long long int key, string value)  
         {  
             if (root == NULL)  
                 return root;  
@@ -410,7 +409,7 @@ class AVLTree
             root->leftcount = node_count(root->left) + 1;
             root->totalcount = node_count(root->left) + node_count(root->right) + 1;
 
-            int balance = getBalance(root);  
+            long long int balance = getBalance(root);  
            
             if (balance > 1 && getBalance(root->left) >= 0)  
                 return rightRotate(root);  

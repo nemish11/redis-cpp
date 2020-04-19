@@ -1,6 +1,302 @@
 #include "redis.h"
 using namespace std;
-#define int long long int
+
+
+void testGET()
+{
+    Redis r;
+
+    string value = r.GET("key1");
+    assert(value == "nil");
+
+    string isSet = r.SET("key1", "value1");
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value1");
+}
+
+
+void testSET()
+{
+    Redis r;
+
+    string value = r.GET("key1");
+    assert(value == "nil");
+
+    string isSet = r.SET("key1", "value1");
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value1");
+
+    isSet = r.SET("key1", "value2");
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value2");
+}
+
+
+void testSETOptions()
+{
+    Redis r;
+
+    string value = r.GET("key1");
+    assert(value == "nil");
+
+    /*
+    TEST EX option of SET
+    SET KEY VALUE EX EXPIRE_TIME(in second)
+    */
+    string isSet = r.SET("key1", "value1", "EX", 2);
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value1");
+
+    this_thread :: sleep_for( chrono :: seconds(3)); // sleep thread for 2 second
+
+    value = r.GET("key1");
+    assert(value == "nil");
+
+
+    /*
+    TEST PX option of SET
+    SET KEY VALUE PX EXPIRE_TIME(in millisecond)
+    */
+    isSet = r.SET("key1", "value1", "PX", 2000);
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value1");
+
+    this_thread :: sleep_for( chrono :: milliseconds(2600)); // sleep thread for 2 second
+
+    value = r.GET("key1");
+    assert(value == "nil");
+
+}
+
+
+void testEXPIRE()
+{
+    Redis r;
+
+    string value = r.GET("key1");
+    assert(value == "nil");
+
+    string isSet = r.SET("key1", "value1");
+    assert(isSet == "OK");
+
+    value = r.GET("key1");
+    assert(value == "value1");
+
+    int isSetExpirationTime = r.EXPIRE("key1", 3); // set expiration time of key1 to 3 second
+    assert(isSetExpirationTime == 1);
+
+    value = r.GET("key1");
+    assert(value == "value1");
+
+    this_thread :: sleep_for( chrono :: seconds(1)); // sleep thread for 1 second
+    
+    value = r.GET("key1");
+    assert(value == "value1");  // value should be "value1"
+    
+    this_thread :: sleep_for( chrono :: seconds(1)); // sleep thread for 1 second
+    
+    value = r.GET("key1");
+    assert(value == "value1"); // value should be "value1"
+    
+    this_thread :: sleep_for( chrono :: seconds(2));
+    
+    value = r.GET("key1");
+    assert(value == "nil"); // value should be "nil"
+
+}
+
+void testZADD()
+{
+    Redis r;
+
+    int isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == 0);
+    
+    isInserted = r.ZADD("key1", 1, "aab");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aad");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 2, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 1, "aab");
+    assert(isInserted == 1);
+}
+
+
+void testZRANK()
+{
+    Redis r;
+
+    int isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 1, "aab");
+    assert(isInserted == 1);
+    
+    isInserted = r.ZADD("key1", 1, "aac");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aad");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aae");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 3, "aaf");
+    assert(isInserted == 1);
+
+    int rank = r.ZRANK("key1", "aaa");
+    assert(rank == 0);
+    rank = r.ZRANK("key1", "aab");
+    assert(rank == 1);
+    rank = r.ZRANK("key1", "aac");
+    assert(rank == 2);
+    rank = r.ZRANK("key1", "aad");
+    assert(rank == 3);
+    rank = r.ZRANK("key1", "aae");
+    assert(rank == 4);
+    rank = r.ZRANK("key1", "aaf");
+    assert(rank == 5);
+    rank = r.ZRANK("key1", "random");
+    assert(rank == -1);
+
+    isInserted = r.ZADD("key2", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 2, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 1, "aab");
+    assert(isInserted == 1);
+
+    rank = r.ZRANK("key2", "aaa");
+    assert(rank == 1);
+    rank = r.ZRANK("key2", "aab");
+    assert(rank == 0);
+}
+
+
+void testZRAGE()
+{
+    Redis r;
+
+    int isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 1, "aab");
+    assert(isInserted == 1);
+    
+    isInserted = r.ZADD("key1", 1, "aac");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aad");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 2, "aae");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key1", 3, "aaf");
+    assert(isInserted == 1);
+
+    vector<string> values = r.ZRANGE("key1", 0, -1);
+    vector<string> expected{"aaa", "aab", "aac", "aad", "aae", "aaf"};
+    assert(values == expected);
+
+    values = r.ZRANGE("key1", 0, 50000);
+    assert(values == expected);
+
+    for(int i=0;i<6;i++)
+    {
+        for(int j=0;j<6;j++)
+        {
+            vector<string> values_ = r.ZRANGE("key1", i, j);
+            if(i > j)
+            {
+                assert(values_.size() == 0);
+            }
+            else
+            {
+                vector<string> expected_(expected.begin()+i, expected.begin()+j+1);
+                assert(values_ == expected_);   
+            }
+        }
+    }
+
+    isInserted = r.ZADD("key2", 1, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 2, "aaa");
+    assert(isInserted == 1);
+
+    isInserted = r.ZADD("key2", 1, "aab");
+    assert(isInserted == 1);
+
+    values = r.ZRANGE("key2", 0, 1);
+    expected = {"aab", "aaa"};
+    assert(values == expected);
+
+    values = r.ZRANGE("key2", -1, -1);
+    expected = {"aaa"};
+    assert(values == expected);
+
+    values = r.ZRANGE("key2", -2, -2);
+    expected = {"aab"};
+    assert(values == expected);
+
+    values = r.ZRANGE("key2", -1, -2);
+    expected = {};
+    assert(values == expected);
+    
+    values = r.ZRANGE("key2", -2, -1);
+    expected = {"aab", "aaa"};
+    assert(values == expected);
+}
+
+
+void testAllInOne()
+{
+    Redis r;
+
+    string isSet = r.SET("key1", "value1");
+    assert(isSet == "OK");
+
+    string value = r.GET("key1");
+    assert(value == "value1");
+
+    // if key already inserted by SET then it's not allowed to insert same key in ZADD
+    int isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
+    assert(isInsertedByZADD == 0);
+
+    r.EXPIRE("key1", 2);
+    this_thread :: sleep_for( chrono :: seconds(3)); // sleep thread for 3 second
+
+    // key should be inserted because "key1" will expire
+    isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
+    assert(isInsertedByZADD == 1);
+}
+
 
 int32_t main()
 {   
@@ -8,115 +304,22 @@ int32_t main()
         freopen("input.txt", "r", stdin);
         //freopen("output.txt", "w", stdout);
     #endif
-    Redis r;
-    cout<< r.SET("hello", "hii")<<endl;
-
-    cout<< r.EXPIRE("hello", 1)<<endl;
-
-    for(int i=0;i<7;i++)
-    {
-        cout<<r.GET("hello")<<endl;
-    }
-    cout<<r.GET("hello")<<endl;
-
-    cout<<r.SET("jjj", "34", "PX", 5478);
-    cout<<r.SET("jjj", "34", "PX", 5667);
-    r.SET("hhh","gjjg");
-    cout<<r.GET("hhh")<<endl;
-    cout<<r.EXPIRE("hhh",1)<<endl;
-    cout<<r.GET("hhh")<<endl;
-    //thread t1(&Redis::free_memory, &r);
-    //t1.detach();
-    //test GET
-    cout<<r.GET("hello")<<endl;
     
-    //test SET
-    cout<<r.SET("hello", "hii")<<endl;
+    testGET();
 
-    cout<<r.GET("hello")<<endl;
-    cout<<r.ZADD("hello", 3, "aaa")<<endl;
-    cout<<r.ZADD("myset", 3, "aaa")<<endl;
-    cout<<r.ZADD("myset", 2, "aab")<<endl;
-    cout<<r.ZADD("myset", 3, "aac")<<endl;
-    cout<<r.ZADD("myset", 2, "aad")<<endl;
-    cout<<r.ZADD("myset1", 1, "aaa")<<endl;
-    cout<<r.ZADD("myset1", 1, "aav")<<endl;
-    cout<<endl;
-    cout<<r.ZRANK("myset", "aaa")<<endl;
-    cout<<r.ZRANK("myset", "aac")<<endl;
-    cout<<r.ZRANK("myset1", "aaa")<<endl;
-    cout<<r.ZRANK("myset1", "aav")<<endl;
+    testSET();
 
-    for(int i=0;i<4;i++)
-    {
-        for(int j=0;j<4;j++)
-        {
-            vector<string>ok = r.ZRANGE("myset",i,j);
-            cout<<i<<" "<<j<<" : ";
-            for(auto x:ok)
-            {
-                cout<<x<<" ";
-            }
-            cout<<endl;
-        }
-    }
+    testSETOptions();
 
-    for(int i=0;i<4;i++)
-    {
-        for(int j=0;j<4;j++)
-        {
-            vector<string>ok = r.ZRANGE("myset1",i,j);
-            cout<<i<<" "<<j<<" : ";
-            for(auto x:ok)
-            {
-                cout<<x<<" ";
-            }
-            cout<<endl;
-        }
-    }
+    testEXPIRE();
 
-    cout<<r.ZADD("myset", 2, "aaa")<<endl;
-    cout<<r.ZADD("myset", 3, "aab")<<endl;
-    cout<<r.ZADD("myset", 4, "aac")<<endl;
-    // r.ZADD("myke",1,"ff");
-    // cout<< r.GET("myke")<<endl;
-    cout<<endl;
-    cout<<r.ZRANK("myset", "aaa")<<endl;
-    cout<<r.ZRANK("myset", "aac")<<endl;
-    cout<<r.ZRANK("myset1", "aaa")<<endl;
-    cout<<r.ZRANK("myset1", "aav")<<endl;
+    testZADD();
 
-    // for(int i=0;i<4;i++)
-    // {
-    //     for(int j=0;j<4;j++)
-    //     {
-    //         vector<pair<string,int>>ok = r.ZRANGE("myset",i,j,"WITHSCORES");
-    //         cout<<i<<" "<<j<<" : ";
-    //         for(auto x:ok)
-    //         {
-    //             cout<<x.first<<" "<<x.second<<" ";
-    //         }
-    //         cout<<endl;
-    //     }
-    // }
+    testZRANK();
 
-    // for(int i=0;i<4;i++)
-    // {
-    //     for(int j=0;j<4;j++)
-    //     {
-    //         vector<pair<string,int> >ok = r.ZRANGE("myset1",i,j,"WITHSCORES");
-    //         cout<<i<<" "<<j<<" : ";
-    //         for(auto x:ok)
-    //         {
-    //             cout<<x.first<<" "<<x.second<<" ";
-    //         }
-    //         cout<<endl;
-    //     }
-    // }
+    testZRAGE();
 
-    // cout<<"before"<<endl;
-    //this_thread::sleep_for(chrono::seconds(5));
-    // cout<<"after closed"<<endl;
+    testAllInOne();
     return 0;
 }
 
