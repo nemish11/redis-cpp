@@ -20,24 +20,19 @@ class Redis
         */
         bool isTimeOut(string key)
         {
-            if(cache.find(key) == cache.end())
-            {
+            if(cache.find(key) == cache.end())  // if not present in cache
                 return 1;
-            }
             
-            Value *value = cache[key];
-            time_t current_time = time(0);
+            Value *value = cache[key]; 
+            time_t current_time = time(0);  // current time in second
             
+            // delete and return 1 if key expired
             if(value->GetExpireTime() < current_time)
             {
                 if(cache[key]->GetType() == NORMAL_VALUE)
-                {
                     delete (NormalValue*)cache[key];
-                }
                 else
-                {
                     delete (SetValue*)cache[key];
-                }
 
                 cache.erase(key);
                 return 1;
@@ -54,9 +49,7 @@ class Redis
         {
             isTimeOut(key); // first check about key is expired or not
             if(cache.find(key) != cache.end() && cache[key]->GetType() != NORMAL_VALUE)
-            {
                 delete (SetValue*)cache[key];
-            }
         }
 
 
@@ -77,7 +70,7 @@ class Redis
         }
 
     public:
-
+        /*
         Redis()
         {        
             threadStatus = true;  // set thread status
@@ -89,7 +82,7 @@ class Redis
         {
             threadStatus = false; // complete execution of thread
             t1.~thread();
-        }
+        }*/
 
         /*
         GET-> first check if key present in cache,
@@ -102,9 +95,7 @@ class Redis
             if(cache.find(key) != cache.end()) // check existance of key
             {
                 if(isTimeOut(key))
-                {
                     return "nil";  // key timeout
-                }   
                 
                 if(cache[key]->GetType() == NORMAL_VALUE)
                 {
@@ -147,11 +138,12 @@ class Redis
         */
         string SET(string key, string val, string option, long long int expire_time=MAX_EXPIRE_TIME)
         {
-            isTimeOut(key);
+            isTimeOut(key); // remove key if already expired
 
-            time_t current_time = time(0);
+            time_t current_time = time(0); // current time in second
             if(option == "EX")
             {
+                // if given key already added by ZADD then remove first and insert new pair.
                 deleteExistingSetValueKey(key);
 
                 cache[key] = new NormalValue(val, current_time + expire_time);
@@ -169,9 +161,7 @@ class Redis
                 if(cache.find(key) != cache.end())
                 {
                     if(cache[key]->GetType() == NORMAL_VALUE)
-                    {
                         return "nil";
-                    }
                 }
                 deleteExistingSetValueKey(key);
 
@@ -197,13 +187,9 @@ class Redis
                 deleteExistingSetValueKey(key);
 
                 if(cache.find(key) != cache.end())
-                {
                     cache[key] = new NormalValue(val, cache[key]->GetExpireTime());
-                }
                 else
-                {
                     cache[key] = new NormalValue(val);
-                }
                 return "ok";
             }
             else
@@ -295,7 +281,6 @@ class Redis
             }
 
             long long int score = obj->getScoreFromValue(value);
-            
             long long int rank = obj->getTreeInstance().findRank(obj->getTreeInstance().root, score, value);
             
             return rank - 1;
@@ -312,14 +297,10 @@ class Redis
             long long int total_values = obj->getTreeInstance().root->totalcount;
             
             if(l<0)
-            {
                 l = l + total_values;
-            }
             
             if(r<0)
-            {
                 r = r + total_values;
-            }
             
             return obj->getTreeInstance().retrieveByRange(obj->getTreeInstance().root, l+1, r+1);
         }
@@ -336,13 +317,9 @@ class Redis
                 SetValue* obj = (SetValue*)cache[key];
                 long long int total_values = obj->getTreeInstance().root->totalcount;
                 if(l<0)
-                {
                     l = l + total_values;
-                }
                 if(r<0)
-                {
                     r = r + total_values;
-                }
                 return obj->getTreeInstance().retrieveByRangeWithScore(obj->getTreeInstance().root, l+1, r+1);
             }
             else

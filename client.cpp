@@ -71,7 +71,7 @@ void testSETOptions()
     value = r.GET("key1");
     assert(value == "value1");
 
-    this_thread :: sleep_for( chrono :: milliseconds(2600)); // sleep thread for 2 second
+    this_thread :: sleep_for( chrono :: seconds(3)); // sleep thread for 2 second
 
     value = r.GET("key1");
     assert(value == "nil");
