@@ -248,6 +248,15 @@ void parseZRANGE(vector<string> &cmd) {
 }
 
 
+void parseTTL(vector<string> &cmd) 
+{
+    if(cmd.size() == 2) 
+        cout<< redis.TTL(cmd[1]);
+    else
+        cout<< "TTL: " << errMsg->wrongUseOfCmd;
+}
+
+
 int main()
 {
     printHelp();
@@ -288,6 +297,10 @@ int main()
         else if(commandType == "ZRANGE")
         {
             parseZRANGE(command);
+        }
+        else if(commandType == "TTL")
+        {
+            parseTTL(command);
         }
         else if(commandType == "EXIT")
         {

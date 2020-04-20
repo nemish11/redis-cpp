@@ -209,7 +209,7 @@ class Redis
         /*
         Set new expire time if key exist in cache.
         */
-        long long int EXPIRE(string key, long long int expire_time)
+        string EXPIRE(string key, long long int expire_time)
         {
             isTimeOut(key);
             
@@ -217,17 +217,17 @@ class Redis
             {
                 time_t current_time = time(0);
                 cache[key]->SetExpireTime(current_time + expire_time);
-                return 1;
+                return "1";
             }
 
-            return 0; //key not found
+            return "0"; //key not found
         }
 
 
         /*
         ZADD score and value with given key to AVL tree.
         */
-        long long int ZADD(string key, long long int score, string value)
+        string ZADD(string key, long long int score, string value)
         {
             isTimeOut(key);
 
@@ -240,8 +240,7 @@ class Redis
                 }
                 catch(const char* msg)
                 {
-                    // cout<<msg<<endl;
-                    return 0;
+                    return msg;
                 }
             }
 
@@ -265,7 +264,7 @@ class Redis
                 long long int old_score = obj->getScoreFromValue(value);
                 
                 if(old_score == score)
-                    return 0;
+                    return "0";
                 
                 Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
                 obj->setTreeInstanceRoot(node);
@@ -275,11 +274,11 @@ class Redis
             obj->setTreeInstanceRoot(node);
             obj->setValueToScore(value, score);
             
-            return 1;
+            return "1";
         }
 
 
-        long long int ZADD(string key, string option, long long int score, string value)
+        string ZADD(string key, string option, long long int score, string value)
         {
             isTimeOut(key);
 
@@ -292,8 +291,7 @@ class Redis
                 }
                 catch(const char* msg)
                 {
-                    // cout<<msg<<endl;
-                    return 0;
+                    return msg;
                 }
             }
 
@@ -321,21 +319,21 @@ class Redis
                     long long int old_score = obj->getScoreFromValue(value);
                     
                     if(old_score == score)
-                        return 0;
+                        return "0";
                     
                     Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
                     obj->setTreeInstanceRoot(node);
                 }
                 else
                 {
-                    return 0;
+                    return "0";
                 }
             }
             else if(option == "NX")
             {
                 if(obj->checkIsValueExist(value))
                 {
-                    return 0;
+                    return "0";
                 }
             }
             else if(option == "CH")
@@ -346,7 +344,7 @@ class Redis
                     long long int old_score = obj->getScoreFromValue(value);
                     
                     if(old_score == score)
-                        return 0;
+                        return "0";
                     
                     Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
                     obj->setTreeInstanceRoot(node);
@@ -361,7 +359,7 @@ class Redis
                     long long int old_score = obj->getScoreFromValue(value);
                     score = score + old_score;
                     if(old_score == score)
-                        return 0;
+                        return "0";
                     
                     Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
                     obj->setTreeInstanceRoot(node);
@@ -375,52 +373,52 @@ class Redis
                 }
                 catch(const char* msg)
                 {
-                    // cout<<msg<<endl;
+                    return msg;
                 }
 
-                return 0;
+                return "0";
             }
 
             Node *node = obj->getTreeInstance().insert(obj->getTreeInstance().root, score, value);
             obj->setTreeInstanceRoot(node);
             obj->setValueToScore(value, score);
             
-            return 1 + modified_count;
+            return to_string(1 + modified_count);
         }
 
         
-        long long int ZRANK(string key, string value)
+        string ZRANK(string key, string value)
         {
             if(cache.find(key) == cache.end() || isTimeOut(key))
             {
-                return -1; //key not found
+                return "-1"; //key not found
             }
 
             SetValue* obj = (SetValue*)cache[key];
 
             if(!obj->checkIsValueExist(value))
             {
-                return -1; //value not found in current tree
+                return "-1"; //value not found in current tree
             }
 
             long long int score = obj->getScoreFromValue(value);
             long long int rank = obj->getTreeInstance().findRank(obj->getTreeInstance().root, score, value);
             
-            return rank - 1;
+            return to_string(rank - 1);
         }
 
 
-        long long int ZREVRANK(string key, string value)
+        string ZREVRANK(string key, string value)
         {
-            long long int rank = ZRANK(key, value);
+            string rank = ZRANK(key, value);
             
-            if(rank == -1)
+            if(rank == "-1")
                 return rank;
             
             SetValue* obj = (SetValue*)cache[key];
 
             long long int totalnodes = obj->getTreeInstance().getTotalNodesInTree(obj->getTreeInstance().root);
-            return totalnodes - rank - 1;
+            return to_string(totalnodes - stoll(rank) - 1);
         }
 
 
@@ -476,7 +474,7 @@ class Redis
         }
 
 
-        long long int ZCARD(string key)
+        string ZCARD(string key)
         {
             isTimeOut(key);
 
@@ -490,20 +488,20 @@ class Redis
                     }
                     catch(const char* msg)
                     {
-                        // cout<<msg;
+                        return msg;
                     }
-                    return 0;
+                    return "0";
                 }
 
                 SetValue* obj= (SetValue*)cache[key];
-                return obj->getTreeInstance().getTotalNodesInTree(obj->getTreeInstance().root);
+                return to_string(obj->getTreeInstance().getTotalNodesInTree(obj->getTreeInstance().root));
             }
             
-            return 0;
+            return "0";
         }
 
 
-        long long int ZSCORE(string key, string value)
+        string ZSCORE(string key, string value)
         {
             isTimeOut(key);
 
@@ -517,14 +515,29 @@ class Redis
                     }
                     catch(const char* msg)
                     {
-                        // cout<<msg;
+                        return msg;
                     }
-                    return -1;
+                    return "-1";
                 }
 
                 SetValue* obj= (SetValue*)cache[key];
-                return obj->getScoreFromValue(value);
+                return to_string(obj->getScoreFromValue(value));
             }
-            return -1; // if key not found
+            return "-1"; // if key not found
+        }
+
+        string TTL(string key)
+        {
+            isTimeOut(key);
+
+            if(cache.find(key) != cache.end())
+            {
+                long long int expire = cache[key]->GetExpireTime();
+                return to_string(expire-time(0));
+            }
+            else
+            {
+                return "-2";
+            }
         }
 };
