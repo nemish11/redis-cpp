@@ -26,6 +26,10 @@ Implemented following Redis commands:
 4) [ZADD](https://redis.io/commands/zadd): Adds all the specified members with the specified scores to the sorted set stored at `key`
 5) [ZRANK](https://redis.io/commands/zrank): Returns the rank of `member` in the sorted set stored at `key`, with the scores ordered from low to high
 6) [ZRANGE](https://redis.io/commands/zrange): Returns the specified range of elements in the sorted set stored at `key`
+7) [ZREVRANK](https://redis.io/commands/zrevrank): Returns the rank of `member` in the sorted set stored at `key`, with the scores ordered from high to low
+8) [ZCARD](https://redis.io/commands/zcard): Returns the sorted set cardinality (number of elements) of the sorted set stored at `key`.
+9) [ZSCORE](https://redis.io/commands/zscore): Returns the score of `member` in the sorted set at `key`
+
 
 <a name="usage"></a>
 ## 3. Usage tips
