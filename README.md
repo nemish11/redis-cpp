@@ -71,7 +71,7 @@ In Case of segmentation fault, comment following code in `redis.h`:
 
 `test_redis.cpp` contains unit test cases for each command. To run test cases enter below commands: <br>
     
-    g++ --std=c++11 client.cpp
+    g++ --std=c++11 test_redis.cpp
     ./a.out
 
 testGET( ) method will test GET command. <br/>
