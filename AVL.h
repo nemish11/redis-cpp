@@ -432,6 +432,13 @@ class AVLTree
             return root;  
         }
 
+        int getTotalNodesInTree(Node *root)
+        {
+            if(root == NULL)
+                return 0;
+            return root->totalcount;
+        }
+
 };
 
 

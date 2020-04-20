@@ -7,6 +7,7 @@ A custom implementation for [Redis](https://redis.io/) using C++ and AVL Tree .
 2. [ Description. ](#desc)
 3. [ Usage tips. ](#usage)
 4. [ Implementation Details. ](#implementation)
+5. [ Testing Details. ](#testing)
 
 <a name="enviro"></a>
 ## 1. Environment
@@ -36,6 +37,7 @@ Step 1: Clone Repo
 Step 2: Compile and Run client.cpp file
 
     g++ --std=c++11 client.cpp
+    ./a.out
 
 Step 3: Change content of client.cpp and perform step 2
 
@@ -62,3 +64,16 @@ In Case of segmentation fault, comment following code in `redis.h`:
         threadStatus = false; // complete execution of thread
         t1.~thread();
     } 
+
+
+<a name="testing"></a>
+## 5. Testing Details
+
+`test_redis.cpp` contains unit test cases for each command. To run test cases enter below commands: <br>
+    
+    g++ --std=c++11 client.cpp
+    ./a.out
+
+testGET( ) method will test GET command. <br/>
+same naming convension for other commands. <br/>
+New Redis instance will be created per method.

@@ -232,7 +232,7 @@ class Redis
                 }
                 catch(const char* msg)
                 {
-                    cout<<msg<<endl;
+                    // cout<<msg<<endl;
                     return 0;
                 }
             }
@@ -267,6 +267,7 @@ class Redis
             return 1;
         }
 
+        
         long long int ZRANK(string key, string value)
         {
             if(cache.find(key) == cache.end() || isTimeOut(key))
@@ -286,6 +287,21 @@ class Redis
             
             return rank - 1;
         }
+
+
+        long long int ZREVRANK(string key, string value)
+        {
+            long long int rank = ZRANK(key, value);
+            
+            if(rank == -1)
+                return rank;
+            
+            SetValue* obj = (SetValue*)cache[key];
+
+            long long int totalnodes = obj->getTreeInstance().getTotalNodesInTree(obj->getTreeInstance().root);
+            return totalnodes - rank - 1;
+        }
+
 
         vector<string> ZRANGE(string key, long long int l, long long int r)
         {
@@ -336,5 +352,32 @@ class Redis
                     return error;
                 }
             }
+        }
+
+
+        int ZCARD(string key)
+        {
+            isTimeOut(key);
+
+            if(cache.find(key) != cache.end())
+            {
+                if(cache[key]->GetType() != SET_VALUE)
+                {
+                    try
+                    {
+                        throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
+                    }
+                    catch(const char* msg)
+                    {
+                        // cout<<msg;
+                    }
+                    return 0;
+                }
+
+                SetValue* obj= (SetValue*)cache[key];
+                return obj->getTreeInstance().getTotalNodesInTree(obj->getTreeInstance().root);
+            }
+            
+            return 0;
         }
 };
