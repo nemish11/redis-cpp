@@ -8,6 +8,7 @@ A custom implementation for [Redis](https://redis.io/) using C++ and AVL Tree .
 3. [ Usage tips. ](#usage)
 4. [ Implementation Details. ](#implementation)
 5. [ Testing Details. ](#testing)
+6. [ Command Line Interface. ](#command)
 
 <a name="enviro"></a>
 ## 1. Environment
@@ -81,3 +82,13 @@ In Case of segmentation fault, comment following code in `redis.h`:
 testGET( ) method will test GET command. <br/>
 same naming convension for other commands. <br/>
 New Redis instance will be created per method.
+
+<a name="command"></a>
+## 6. Command Line Interface
+
+To use CLI run following commands:
+    
+    g++ --std=c++11 command_line_interface.cpp
+    ./a.out
+
+Type HELP command to check usage of each command.
