@@ -40,6 +40,9 @@ Step 2: Compile and Run client.cpp file
 Step 3: Change content of client.cpp and perform step 2
 
 
+>Note: Threading is used to clear expired keys. In the case of segmentation fault, running the code twice will create the thread.
+
+
 <a name="implementation"></a>
 ## 4. Implementation Details
 
