@@ -97,8 +97,8 @@ void testEXPIRE()
     value = r.GET("key1");
     assert(value == "value1");
 
-    long long int isSetExpirationTime = r.EXPIRE("key1", 3); // set expiration time of key1 to 3 second
-    assert(isSetExpirationTime == 1);
+    string isSetExpirationTime = r.EXPIRE("key1", 3); // set expiration time of key1 to 3 second
+    assert(isSetExpirationTime == "1");
 
     value = r.GET("key1");
     assert(value == "value1");
@@ -125,29 +125,29 @@ void testZADD()
 {
     Redis r;
 
-    long long int isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 1);
+    string isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 0);
+    assert(isInserted == "0");
     
     isInserted = r.ZADD("key1", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aad");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     cout<<"ZADD test cases passed"<<endl;
 }
@@ -157,52 +157,52 @@ void testZRANK()
 {
     Redis r;
 
-    long long int isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 1);
+    string isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
     
     isInserted = r.ZADD("key1", 1, "aac");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aad");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aae");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 3, "aaf");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
-    long long int rank = r.ZRANK("key1", "aaa");
-    assert(rank == 0);
+    string rank = r.ZRANK("key1", "aaa");
+    assert(rank == "0");
     rank = r.ZRANK("key1", "aab");
-    assert(rank == 1);
+    assert(rank == "1");
     rank = r.ZRANK("key1", "aac");
-    assert(rank == 2);
+    assert(rank == "2");
     rank = r.ZRANK("key1", "aad");
-    assert(rank == 3);
+    assert(rank == "3");
     rank = r.ZRANK("key1", "aae");
-    assert(rank == 4);
+    assert(rank == "4");
     rank = r.ZRANK("key1", "aaf");
-    assert(rank == 5);
+    assert(rank == "5");
     rank = r.ZRANK("key1", "random");
-    assert(rank == -1);
+    assert(rank == "-1");
 
     isInserted = r.ZADD("key2", 1, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     rank = r.ZRANK("key2", "aaa");
-    assert(rank == 1);
+    assert(rank == "1");
     rank = r.ZRANK("key2", "aab");
-    assert(rank == 0);
+    assert(rank == "0");
 
     cout<<"ZRANK test cases passed"<<endl;
 }
@@ -212,23 +212,23 @@ void testZRAGE()
 {
     Redis r;
 
-    long long int isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 1);
+    string isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
     
     isInserted = r.ZADD("key1", 1, "aac");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aad");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aae");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 3, "aaf");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     vector<string> values = r.ZRANGE("key1", 0, -1);
     vector<string> expected{"aaa", "aab", "aac", "aad", "aae", "aaf"};
@@ -255,13 +255,13 @@ void testZRAGE()
     }
 
     isInserted = r.ZADD("key2", 1, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     values = r.ZRANGE("key2", 0, 1);
     expected = {"aab", "aaa"};
@@ -298,18 +298,18 @@ void testAllInOne()
     assert(value == "value1");
 
     // if key already inserted by SET then it's not allowed to insert same key in ZADD
-    long long int isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
-    assert(isInsertedByZADD == 0);
+    string isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
+    assert(isInsertedByZADD == "(error) WRONGTYPE Operation against a key holding the wrong kind of value");
 
     r.EXPIRE("key1", 2);
     this_thread :: sleep_for( chrono :: seconds(3)); // sleep thread for 3 second
 
     // key should be inserted because "key1" will expire
     isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
-    assert(isInsertedByZADD == 1);
+    assert(isInsertedByZADD == "1");
 
     isInsertedByZADD = r.ZADD("key2", 1, "aaa"); 
-    assert(isInsertedByZADD == 1);
+    assert(isInsertedByZADD == "1");
 
     value = r.GET("key2");
     assert(value == "(error) WRONGTYPE Operation against a key holding the wrong kind of value");
@@ -322,35 +322,35 @@ void testZCARD()
 {
     Redis r;
 
-    long long int isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 1);
+    string isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 0);
+    assert(isInserted == "0");
     
     isInserted = r.ZADD("key1", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aad");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
-    long long int count = r.ZCARD("key1");
-    assert(count == 3);
+    string count = r.ZCARD("key1");
+    assert(count == "3");
 
     count = r.ZCARD("key2");
-    assert(count == 2);
+    assert(count == "2");
 
     cout<<"ZCARD test cases passed"<<endl;
 }
@@ -360,52 +360,52 @@ void testZREVRANK()
 {
     Redis r;
 
-    long long int isInserted = r.ZADD("key1", 1, "aaa");
-    assert(isInserted == 1);
+    string isInserted = r.ZADD("key1", 1, "aaa");
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
     
     isInserted = r.ZADD("key1", 1, "aac");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aad");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 2, "aae");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key1", 3, "aaf");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
-    long long int rank = r.ZREVRANK("key1", "aaa");
-    assert(rank == 5);
+    string rank = r.ZREVRANK("key1", "aaa");
+    assert(rank == "5");
     rank = r.ZREVRANK("key1", "aab");
-    assert(rank == 4);
+    assert(rank == "4");
     rank = r.ZREVRANK("key1", "aac");
-    assert(rank == 3);
+    assert(rank == "3");
     rank = r.ZREVRANK("key1", "aad");
-    assert(rank == 2);
+    assert(rank == "2");
     rank = r.ZREVRANK("key1", "aae");
-    assert(rank == 1);
+    assert(rank == "1");
     rank = r.ZREVRANK("key1", "aaf");
-    assert(rank == 0);
+    assert(rank == "0");
     rank = r.ZREVRANK("key1", "random");
-    assert(rank == -1);
+    assert(rank == "-1");
 
     isInserted = r.ZADD("key2", 1, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 2, "aaa");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     isInserted = r.ZADD("key2", 1, "aab");
-    assert(isInserted == 1);
+    assert(isInserted == "1");
 
     rank = r.ZREVRANK("key2", "aaa");
-    assert(rank == 0);
+    assert(rank == "0");
     rank = r.ZREVRANK("key2", "aab");
-    assert(rank == 1);
+    assert(rank == "1");
 
     cout<<"ZREVRANK test case passed"<<endl;    
 
@@ -418,7 +418,7 @@ int32_t main()
         freopen("input.txt", "r", stdin);
         //freopen("output.txt", "w", stdout);
     #endif
-    
+
     testGET();
 
     testSET();
