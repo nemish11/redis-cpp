@@ -125,10 +125,11 @@ class Redis
         set default expiration time MAX_EXPIRE_TIME
         NOTE: if key previously added by ZADD then it will be deleted and new key-value pair inserted
         */
-        string SET(string key, string val)
+        string SET(string key, string val, long long int expire_time=MAX_EXPIRE_TIME)
         {
             deleteExistingSetValueKey(key); //delete already existing key added by ZADD or SET
-            cache[key] = new NormalValue(val);
+            time_t current_time = time(0);
+            cache[key] = new NormalValue(val, current_time + expire_time);
             return "OK";
         }
 
