@@ -206,6 +206,9 @@ class Redis
             }
         }
 
+        /*
+        Set new expire time if key exist in cache.
+        */
         long long int EXPIRE(string key, long long int expire_time)
         {
             isTimeOut(key);
@@ -220,12 +223,17 @@ class Redis
             return 0; //key not found
         }
 
+
+        /*
+        ZADD score and value with given key to AVL tree.
+        */
         long long int ZADD(string key, long long int score, string value)
         {
             isTimeOut(key);
 
             if(cache.find(key) != cache.end() && cache[key]->GetType() != SET_VALUE)
             {
+                // if key already set by SET command then throw error
                 try
                 {
                     throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
@@ -240,10 +248,12 @@ class Redis
             SetValue* obj;
             if(cache.find(key) != cache.end())
             {
+                // if already tree instance exist then use it
                 obj = (SetValue*)cache[key];
             }
             else
             {
+                // create new instance of SetValue
                 AVLTree tree;
                 obj = new SetValue(tree);
                 cache[key] = obj;
@@ -251,6 +261,7 @@ class Redis
 
             if(obj->checkIsValueExist(value))
             {
+                // if same value already exist then first remove it and update score
                 long long int old_score = obj->getScoreFromValue(value);
                 
                 if(old_score == score)
@@ -265,6 +276,116 @@ class Redis
             obj->setValueToScore(value, score);
             
             return 1;
+        }
+
+
+        long long int ZADD(string key, string option, long long int score, string value)
+        {
+            isTimeOut(key);
+
+            if(cache.find(key) != cache.end() && cache[key]->GetType() != SET_VALUE)
+            {
+                // if key already set by SET command then throw error
+                try
+                {
+                    throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
+                }
+                catch(const char* msg)
+                {
+                    // cout<<msg<<endl;
+                    return 0;
+                }
+            }
+
+            SetValue* obj;
+            if(cache.find(key) != cache.end())
+            {
+                // if already tree instance exist then use it
+                obj = (SetValue*)cache[key];
+            }
+            else
+            {
+                // create new instance of SetValue
+                AVLTree tree;
+                obj = new SetValue(tree);
+                cache[key] = obj;
+            }
+
+            long long int modified_count  = 0;
+
+            if(option == "XX")
+            {
+                if(obj->checkIsValueExist(value))
+                {
+                    // if same value already exist then first remove it and update score
+                    long long int old_score = obj->getScoreFromValue(value);
+                    
+                    if(old_score == score)
+                        return 0;
+                    
+                    Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
+                    obj->setTreeInstanceRoot(node);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else if(option == "NX")
+            {
+                if(obj->checkIsValueExist(value))
+                {
+                    return 0;
+                }
+            }
+            else if(option == "CH")
+            {
+                if(obj->checkIsValueExist(value))
+                {
+                    // if same value already exist then first remove it and update score
+                    long long int old_score = obj->getScoreFromValue(value);
+                    
+                    if(old_score == score)
+                        return 0;
+                    
+                    Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
+                    obj->setTreeInstanceRoot(node);
+                    modified_count++;
+                }
+            }
+            else if(option =="INCR")
+            {
+                if(obj->checkIsValueExist(value))
+                {
+                    // if same value already exist then first remove it and update score
+                    long long int old_score = obj->getScoreFromValue(value);
+                    score = score + old_score;
+                    if(old_score == score)
+                        return 0;
+                    
+                    Node *node = obj->getTreeInstance().deleteNode(obj->getTreeInstance().root, old_score, value);
+                    obj->setTreeInstanceRoot(node);
+                }
+            }
+            else
+            {
+                try
+                {
+                    throw "(error) ERR Syntax error";
+                }
+                catch(const char* msg)
+                {
+                    // cout<<msg<<endl;
+                }
+
+                return 0;
+            }
+
+            Node *node = obj->getTreeInstance().insert(obj->getTreeInstance().root, score, value);
+            obj->setTreeInstanceRoot(node);
+            obj->setValueToScore(value, score);
+            
+            return 1 + modified_count;
         }
 
         
@@ -323,11 +444,11 @@ class Redis
         }
 
 
-        vector<pair<string,int> > ZRANGE(string key, long long int l, long long int r, string option)
+        vector<pair<string,long long int> > ZRANGE(string key, long long int l, long long int r, string option)
         {
             if(cache.find(key) == cache.end() || isTimeOut(key) || cache[key]->GetType()!=SET_VALUE)
             {
-                return vector<pair<string,int> >();
+                return vector<pair<string,long long int> >();
             }
             if(option == "WITHSCORES")
             {
@@ -347,7 +468,7 @@ class Redis
                 }
                 catch(const char* msg)
                 {
-                    vector<pair<string,int> >error;
+                    vector<pair<string,long long int> >error;
                     error.push_back(make_pair(msg,0));
                     return error;
                 }
@@ -355,7 +476,7 @@ class Redis
         }
 
 
-        int ZCARD(string key)
+        long long int ZCARD(string key)
         {
             isTimeOut(key);
 
@@ -379,5 +500,31 @@ class Redis
             }
             
             return 0;
+        }
+
+
+        long long int ZSCORE(string key, string value)
+        {
+            isTimeOut(key);
+
+            if(cache.find(key) != cache.end())
+            {
+                if(cache[key]->GetType() != SET_VALUE)
+                {
+                    try
+                    {
+                        throw "(error) WRONGTYPE Operation against a key holding the wrong kind of value";
+                    }
+                    catch(const char* msg)
+                    {
+                        // cout<<msg;
+                    }
+                    return -1;
+                }
+
+                SetValue* obj= (SetValue*)cache[key];
+                return obj->getScoreFromValue(value);
+            }
+            return -1; // if key not found
         }
 };

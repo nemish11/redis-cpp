@@ -97,7 +97,7 @@ void testEXPIRE()
     value = r.GET("key1");
     assert(value == "value1");
 
-    int isSetExpirationTime = r.EXPIRE("key1", 3); // set expiration time of key1 to 3 second
+    long long int isSetExpirationTime = r.EXPIRE("key1", 3); // set expiration time of key1 to 3 second
     assert(isSetExpirationTime == 1);
 
     value = r.GET("key1");
@@ -125,7 +125,7 @@ void testZADD()
 {
     Redis r;
 
-    int isInserted = r.ZADD("key1", 1, "aaa");
+    long long int isInserted = r.ZADD("key1", 1, "aaa");
     assert(isInserted == 1);
 
     isInserted = r.ZADD("key1", 1, "aaa");
@@ -157,7 +157,7 @@ void testZRANK()
 {
     Redis r;
 
-    int isInserted = r.ZADD("key1", 1, "aaa");
+    long long int isInserted = r.ZADD("key1", 1, "aaa");
     assert(isInserted == 1);
 
     isInserted = r.ZADD("key1", 1, "aab");
@@ -175,7 +175,7 @@ void testZRANK()
     isInserted = r.ZADD("key1", 3, "aaf");
     assert(isInserted == 1);
 
-    int rank = r.ZRANK("key1", "aaa");
+    long long int rank = r.ZRANK("key1", "aaa");
     assert(rank == 0);
     rank = r.ZRANK("key1", "aab");
     assert(rank == 1);
@@ -212,7 +212,7 @@ void testZRAGE()
 {
     Redis r;
 
-    int isInserted = r.ZADD("key1", 1, "aaa");
+    long long int isInserted = r.ZADD("key1", 1, "aaa");
     assert(isInserted == 1);
 
     isInserted = r.ZADD("key1", 1, "aab");
@@ -237,9 +237,9 @@ void testZRAGE()
     values = r.ZRANGE("key1", 0, 50000);
     assert(values == expected);
 
-    for(int i=0;i<6;i++)
+    for(long long int i=0;i<6;i++)
     {
-        for(int j=0;j<6;j++)
+        for(long long int j=0;j<6;j++)
         {
             vector<string> values_ = r.ZRANGE("key1", i, j);
             if(i > j)
@@ -298,7 +298,7 @@ void testAllInOne()
     assert(value == "value1");
 
     // if key already inserted by SET then it's not allowed to insert same key in ZADD
-    int isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
+    long long int isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
     assert(isInsertedByZADD == 0);
 
     r.EXPIRE("key1", 2);
@@ -307,6 +307,14 @@ void testAllInOne()
     // key should be inserted because "key1" will expire
     isInsertedByZADD = r.ZADD("key1", 1, "aaa"); 
     assert(isInsertedByZADD == 1);
+
+    isInsertedByZADD = r.ZADD("key2", 1, "aaa"); 
+    assert(isInsertedByZADD == 1);
+
+    value = r.GET("key2");
+    assert(value == "(error) WRONGTYPE Operation against a key holding the wrong kind of value");
+
+    cout<<"integration of multiple commande passed"<<endl;
 }
 
 
@@ -314,7 +322,7 @@ void testZCARD()
 {
     Redis r;
 
-    int isInserted = r.ZADD("key1", 1, "aaa");
+    long long int isInserted = r.ZADD("key1", 1, "aaa");
     assert(isInserted == 1);
 
     isInserted = r.ZADD("key1", 1, "aaa");
@@ -338,7 +346,7 @@ void testZCARD()
     isInserted = r.ZADD("key2", 1, "aab");
     assert(isInserted == 1);
 
-    int count = r.ZCARD("key1");
+    long long int count = r.ZCARD("key1");
     assert(count == 3);
 
     count = r.ZCARD("key2");
@@ -352,7 +360,7 @@ void testZREVRANK()
 {
     Redis r;
 
-    int isInserted = r.ZADD("key1", 1, "aaa");
+    long long int isInserted = r.ZADD("key1", 1, "aaa");
     assert(isInserted == 1);
 
     isInserted = r.ZADD("key1", 1, "aab");
@@ -370,7 +378,7 @@ void testZREVRANK()
     isInserted = r.ZADD("key1", 3, "aaf");
     assert(isInserted == 1);
 
-    int rank = r.ZREVRANK("key1", "aaa");
+    long long int rank = r.ZREVRANK("key1", "aaa");
     assert(rank == 5);
     rank = r.ZREVRANK("key1", "aab");
     assert(rank == 4);
@@ -425,11 +433,11 @@ int32_t main()
 
     testZRAGE();
 
-    testAllInOne();
-
     testZCARD();
 
     testZREVRANK();
+
+    testAllInOne();
 
     return 0;
 }

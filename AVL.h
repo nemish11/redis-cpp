@@ -218,7 +218,7 @@ class AVLTree
             {
                 takeElementFromLeftSubtree(root->right, count, values);
 
-                if((int)values.size() < count)
+                if((long long int)values.size() < count)
                     values.push_back(root->value);
                 else
                     return;
@@ -236,7 +236,7 @@ class AVLTree
             {
                 takeElementFromRightSubtree(root->left, count, values);
 
-                if((int)values.size() < count)
+                if((long long int)values.size() < count)
                     values.push_back(root->value);
                 else
                     return;
@@ -279,13 +279,13 @@ class AVLTree
         /*
         Stores count number of element from left subtree of tree.
         */
-        void takeElementFromLeftSubtreeWithscores(Node *root, long long int count, vector<pair<string,int>>&values)
+        void takeElementFromLeftSubtreeWithscores(Node *root, long long int count, vector<pair<string,long long int>>&values)
         {
             if(root!=NULL)
             {
                 takeElementFromLeftSubtreeWithscores(root->right, count, values);
 
-                if((int)values.size() < count)
+                if((long long int)values.size() < count)
                     values.push_back(make_pair(root->value, root->key));
                 else
                     return;
@@ -298,13 +298,13 @@ class AVLTree
         /*
         Stores count number of element from right subtree of tree.
         */
-        void takeElementFromRightSubtreeWithscores(Node *root, long long int count, vector<pair<string,int>>&values)
+        void takeElementFromRightSubtreeWithscores(Node *root, long long int count, vector<pair<string,long long int>>&values)
         {
             if(root!=NULL)
             {
                 takeElementFromRightSubtreeWithscores(root->left, count, values);
 
-                if((int)values.size() < count)
+                if((long long int)values.size() < count)
                     values.push_back(make_pair(root->value, root->key));
                 else
                     return;
@@ -316,10 +316,10 @@ class AVLTree
         /*
         Return all values with score which has rank between left and right
         */
-        vector< pair<string,int> > retrieveByRangeWithScore(Node *root, long long int left, long long int right)
+        vector< pair<string,long long int> > retrieveByRangeWithScore(Node *root, long long int left, long long int right)
         {
             if(left > right || root == NULL || left<=0 || right<=0)
-                return vector<pair<string,int>>();
+                return vector<pair<string,long long int>>();
 
             if(root->leftcount < left)
                 return retrieveByRangeWithScore(root->right, left-root->leftcount, right-root->leftcount);
@@ -328,14 +328,14 @@ class AVLTree
                 return retrieveByRangeWithScore(root->left, left, right);
             
             
-            vector<pair<string,int>>left_val;
+            vector<pair<string,long long int>>left_val;
             
             takeElementFromLeftSubtreeWithscores(root->left, root->leftcount - left, left_val);
             reverse(left_val.begin(), left_val.end());
             
             left_val.push_back(make_pair(root->value, root->key));
 
-            vector<pair<string,int>>right_val;
+            vector<pair<string,long long int>>right_val;
             takeElementFromRightSubtreeWithscores(root->right, right - root->leftcount, right_val);
             
             for(auto value: right_val)
@@ -432,7 +432,7 @@ class AVLTree
             return root;  
         }
 
-        int getTotalNodesInTree(Node *root)
+        long long int getTotalNodesInTree(Node *root)
         {
             if(root == NULL)
                 return 0;

@@ -17,6 +17,11 @@ int32_t main()
 
     cout<< redis.GET("key") <<endl;
 
+    cout<< redis.ZADD("key1",1, "aaa") <<endl;
+
+    cout<< redis.ZADD("key1","CH", 2, "aab")<<endl;
+
+    cout<< redis.ZSCORE("key1", "aaa")<<endl;
     return 0;
 }
 

@@ -84,7 +84,7 @@ class SetValue : public Value
 {
     private:
         AVLTree tree;  //tree is instance.
-        map<string, int> value_to_score; //stores score of value
+        map<string, long long int> value_to_score; //stores score of value
     public:
         SetValue()
         {
@@ -112,7 +112,7 @@ class SetValue : public Value
             this->tree.root = root;
         }
 
-        void setValueToScore(string value, int score)
+        void setValueToScore(string value, long long int score)
         {
             this->value_to_score[value] = score;
         }
@@ -124,7 +124,7 @@ class SetValue : public Value
             return false;
         }
 
-        int getScoreFromValue(string value)
+        long long int getScoreFromValue(string value)
         {
             return this->value_to_score[value];
         }
